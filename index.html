@@ -87,6 +87,15 @@
     </section>
   </main>
 
+  
+  <script src="https://cdn.trackjs.com/agent/v3/latest/t.js"></script>
+  <script>
+    window.TrackJS && TrackJS.install({
+      token: "59757e4965c94b19bb85f852641206de",
+      application: "lab9"
+    });
+  </script>
+
   <script>
     let form = document.querySelector('form');
     form.addEventListener('submit', e => {
@@ -102,7 +111,141 @@
 
     // Start your code here
     // You may move this JS to another file if you wish
+
+    // 1) Custom Error Class
+    class CalculationError extends Error {
+      constructor(message) {
+        super(message);
+        this.name = 'CalculationError';
+      }
+    }
+
+    // 2) Remove the naive eval listener and replace with try/catch/finally logic
+    // First, remove the original listener so it does not run the naive eval twice
+    form.removeEventListener('submit', () => {});
+    // Add a fresh, robust listener:
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+      const output = document.querySelector('output');
+
+      try {
+        const first = parseFloat(document.querySelector('#first-num').value);
+        const second = parseFloat(document.querySelector('#second-num').value);
+        const operator = document.querySelector('#operator').value;
+
+        if (isNaN(first) || isNaN(second)) {
+          // Throw a custom error when input is invalid
+          throw new CalculationError('Invalid number input');
+        }
+
+        const result = eval(`${first} ${operator} ${second}`);
+        output.innerHTML = result;
+      } catch (err) {
+        console.error(err);
+        output.innerHTML = `Error: ${err.message}`;
+      } finally {
+        console.log('Calculation attempt completed.');
+      }
+    });
+
+    // 3) Console Button Actions
+
+    // Sample data array to demonstrate console.table
+    const demoData = [
+      { name: 'Software Engineering 110', num: 110 },
+      { name: 'Programming Languages 130', num: 130 },
+      { name: 'Advanced Software 112', num: 112 }
+    ];
+    let timerStarted = false;
+
+    // Define each button’s action in order:
+    const actions = [
+      // 0: Console Log
+      () => console.log('Console Log Demo'),
+      // 1: Console Error
+      () => console.error('Console Error Demo'),
+      // 2: Console Count
+      () => console.count('Console Button'),
+      // 3: Console Warn
+      () => console.warn('Console Warn Button.'),
+      // 4: Console Assert
+      () => console.assert(2 === 3, { number: 2, errorMsg: 'The number does not equal 3' }),
+      // 5: Console Clear
+      () => console.clear(),
+      // 6: Console Dir
+      //    when dir is clicked it will log the button element
+      () => {},   // placeholder; actual logic below in event listener
+      // 7: Console dirxml
+      //    when dirxml is clicked it will log the button’s HTML
+      () => {},   // placeholder; actual logic below in event listener
+      // 8: Console Group Start
+      () => console.group('console.group'),
+      // 9: Console Group End
+      () => console.groupEnd(),
+      // 10: Console Table
+      () => console.table(demoData),
+      // 11: Start Timer
+      () => {
+        if (!timerStarted) {
+          console.time('Timer Button');
+          timerStarted = true;
+        }
+      },
+      // 12: End Timer
+      () => {
+        if (timerStarted) {
+          console.timeEnd('Timer Button');
+          timerStarted = false;
+        }
+      },
+      // 13: Console Trace
+      () => {
+        function deep() {
+          deeper();
+        }
+        function deeper() {
+          deepest();
+        }
+        function deepest() {
+          console.trace('Trace triggered');
+        }
+        deep();
+      },
+      // 14: Trigger a Global Error
+      () => boom() // This will throw ReferenceError: boom is not defined
+    ];
+
+    errorBtns.forEach((btn, i) => {
+      btn.addEventListener('click', () => {
+        if (i === 14) {
+          // “Trigger a Global Error” → uncaught boom()
+          actions[i]();
+        }
+        else {
+          try {
+            if (i === 6) {
+              console.dir(btn);
+            }
+            else if (i === 7) {
+              console.dirxml(btn);
+            }
+            else {
+              actions[i]();
+            }
+          } catch (err) {
+            console.log('Sadly an error happened my friend');
+          }
+        }
+      });
+    });
+
+    // 5) Global Error Handler
+    window.onerror = function (msg, url, line, col, error) {
+      console.log('Global error caught:', msg);
+     // return true; uncomment to hide the actual error message for the boom and syntax to be shown in the console
+    };
   </script>
+
 </body>
 
 </html>
